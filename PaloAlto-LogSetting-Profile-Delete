@@ -1,0 +1,43 @@
+import requests
+import json
+import re
+#Change API Key which you require
+apikey = "YOURAPIKEY"
+#Here indicate hostname or ip address of Palo Alto
+hostname = "https://HOSTNAME"
+
+def GetRuleNames(hostname, apikey, vsys):
+    url_get_rules = "{}/api/?type=config&action=get&key={}&xpath=/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='{}']/rulebase/security/rules"
+
+    conf = requests.get(url_get_rules.format(hostname, apikey, vsys),
+                                    verify=False)
+    rule_name = []
+    res = conf.text
+    res = res.split('\n')
+    for x in res:
+        if '<entry name' in x:
+            x = x.replace('    <entry name="', '')
+            x = re.sub('" uuid=".{1,50}','',x)
+            rule_name.append(x)
+
+    return rule_name
+
+
+
+def ChangeLogForward(hostname, apikey, vsys, rulename):
+    url_change_forward = "{}/api/?type=config&action=delete&key={}&xpath=/config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='{}']/rulebase/security/rules/entry[@name='{}']/log-setting"
+    conf = requests.get(url_change_forward.format(hostname, apikey, vsys, rulename),
+                        verify=False)
+    print(conf.text)
+
+# Change vsys # which you need 
+vsys = 'vsys1'
+rule_list = GetRuleNames(hostname, apikey, vsys)
+for xx in rule_list:
+    ChangeLogForward(hostname, apikey, 'vsys5', vsys)
+
+#ChangeLogForward(hostname, apikey)
+
+
+# for x in GetRuleNames(hostname, apikey):
+#     print(x)
