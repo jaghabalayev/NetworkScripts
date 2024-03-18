@@ -63,22 +63,22 @@ while True:
 
                 created_date_time = datetime.strptime(x[list(x.keys())[0]]['attributes']['created'][0:19], '%Y-%m-%dT%H:%M:%S')
                 if created_date_time > current_datetime_diff:
-                    #print(x)
-                    final_res = ""
-                    final_res += "Created: " + x['faultInst']['attributes']['created'] + '\n'
-                    final_res += "LastTransition: " + x['faultInst']['attributes']['lastTransition'] + '\n'
-                    final_res += "Cause: " + x['faultInst']['attributes']['cause'] + '\n'
-                    final_res += "Status: " + x['faultInst']['attributes']['status'] + '\n'
-                    final_res += "LC Status: " + x['faultInst']['attributes']['lc'] + '\n'
-                    final_res += "Occur: " + x['faultInst']['attributes']['occur'] + '\n'
-                    final_res += "ChangeSet: " + x['faultInst']['attributes']['changeSet'] + '\n'
-                    final_res += "Description: " + x['faultInst']['attributes']['descr'] + '\n'
-                    final_res += "Subject: " + x['faultInst']['attributes']['subject'] + '\n'
-                    final_res += "DN: " + x['faultInst']['attributes']['dn'] + '\n'
-                    final_res += "Domain: " + x['faultInst']['attributes']['domain'] + '\n'
-                    final_res += "Rule: " + x['faultInst']['attributes']['rule'] + '\n'
-                    final_res += "Fault Code: " + x['faultInst']['attributes']['code'] + '\n'
-                    send_to_telegram(final_res)
+                    if x['faultInst']['attributes']['lc'] != 'Soaking':
+                        final_res = ""
+                        final_res += "Created: " + x['faultInst']['attributes']['created'] + '\n'
+                        final_res += "LastTransition: " + x['faultInst']['attributes']['lastTransition'] + '\n'
+                        final_res += "Cause: " + x['faultInst']['attributes']['cause'] + '\n'
+                        final_res += "Status: " + x['faultInst']['attributes']['status'] + '\n'
+                        final_res += "LC Status: " + x['faultInst']['attributes']['lc'] + '\n'
+                        final_res += "Occur: " + x['faultInst']['attributes']['occur'] + '\n'
+                        final_res += "ChangeSet: " + x['faultInst']['attributes']['changeSet'] + '\n'
+                        final_res += "Description: " + x['faultInst']['attributes']['descr'] + '\n'
+                        final_res += "Subject: " + x['faultInst']['attributes']['subject'] + '\n'
+                        final_res += "DN: " + x['faultInst']['attributes']['dn'] + '\n'
+                        final_res += "Domain: " + x['faultInst']['attributes']['domain'] + '\n'
+                        final_res += "Rule: " + x['faultInst']['attributes']['rule'] + '\n'
+                        final_res += "Fault Code: " + x['faultInst']['attributes']['code'] + '\n'
+                        send_to_telegram(final_res)
 
 
         else:
