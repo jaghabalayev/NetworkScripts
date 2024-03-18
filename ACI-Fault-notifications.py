@@ -63,7 +63,7 @@ while True:
 
                 created_date_time = datetime.strptime(x[list(x.keys())[0]]['attributes']['created'][0:19], '%Y-%m-%dT%H:%M:%S')
                 if created_date_time > current_datetime_diff:
-                    if x['faultInst']['attributes']['lc'] != 'Soaking':
+                    if x['faultInst']['attributes']['lc'] != 'soaking':
                         final_res = ""
                         final_res += "Created: " + x['faultInst']['attributes']['created'] + '\n'
                         final_res += "LastTransition: " + x['faultInst']['attributes']['lastTransition'] + '\n'
