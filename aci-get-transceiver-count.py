@@ -40,19 +40,15 @@ if response.status_code == 200:
     inv = response.json()['imdata']
     #print(inv)
 
-count_dict = {}
 # Initialize an empty dictionary to store the counts of unique values
 count_dict = {}
 
-# Iterate through the data and count the occurrences of each unique value
 for item in inv:
     guiCiscoEID = item['ethpmFcot']['attributes']['guiCiscoEID']
-    if guiCiscoEID in count_dict and item['ethpmFcot']['attributes']['state'] == 'inserted':
-        count_dict[guiCiscoEID] += 1
-    else:
-        count_dict[guiCiscoEID] = 1
+    if item['ethpmFcot']['attributes']['state'] == 'inserted':
+        if guiCiscoEID in count_dict:
+            count_dict[guiCiscoEID] += 1
+        else:
+            count_dict[guiCiscoEID] = 1
 
-
-filtered_data = {key: value for key, value in count_dict.items() if value != 1}
-
-print(filtered_data)
+print(count_dict)
