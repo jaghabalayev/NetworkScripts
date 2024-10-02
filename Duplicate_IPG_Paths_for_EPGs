@@ -1,0 +1,120 @@
+import requests
+import json
+
+# APIC credentials and base URL
+apic_ip = "***"
+user_apic = 'apic#local' + "\\" + "\\" + '***USERNAME***'
+password_apic = "***PASSWORD***"
+
+site_id = '***'
+anpName = '****'
+templateName = '*****'
+schema_id = '***'
+old_ipg_name = "****"
+
+new_ipg_name = '***'
+leafid1 = '***'
+leafid2 = '***'
+
+
+user_ndo = "****"
+password_ndo = "****"
+
+
+# Disable SSL warnings if using self-signed certificate
+requests.packages.urllib3.disable_warnings()
+application_profile = ''
+# Login to APIC
+def GetAPICToken(apicip, user, password):
+    json_input_auth = """{ "aaaUser" : { "attributes" : { "name" : "%s", "pwd" : "%s" } } }"""% (user, password)
+
+    r_auth = requests.post('https://{}/api/aaaLogin.json'.format(apicip), json=eval(json_input_auth), verify=False)
+
+    r_auth = r_auth.json()
+    token = r_auth['imdata'][0]['aaaLogin']['attributes']['token']
+
+    headers_apic = {
+        "Cookie": f"APIC-Cookie={{}}".format(token)
+    }
+    return headers_apic
+
+
+def GetNDAPIKey(user ,password):
+    auth_json = {
+        "username": user,
+        "password": password
+    }
+    headers = {'Accept': 'application/json', 'Content-Type': 'application/json', 'Connection': 'keep-alive'}
+    url_auth = "https://pt-bmdc-nd-cl1.pasha-technology.net/api/v1/auth/login"
+    r = requests.post(url_auth, json=auth_json, headers=headers, verify=False)
+
+    return ( r.json()['jwttoken'] )
+
+
+
+def GetEPGbyIPG(header,old_ipg_name):
+
+    host = '10.220.220.111'
+    result ={}
+
+    r_l3o = requests.get("https://pt-bmdc-apic1.pasha-technology.net/api/node/class/fvRsPathAtt.json", headers=header, verify=False)
+    # r_l3o = r_l3o.json()
+    full_output = r_l3o.json()['imdata']
+    #print(full_output)
+    for x in full_output:
+        if old_ipg_name in x['fvRsPathAtt']['attributes']['dn']:
+            full_path = x['fvRsPathAtt']['attributes']['dn']
+            vlan_list = x['fvRsPathAtt']['attributes']['encap']
+            vlan_list = vlan_list.split("-")
+
+
+            #print(x['fvRsPathAtt']['attributes']['dn'])
+            full_path = full_path.split('/')
+            epg_name = full_path[3]
+            epg_name = full_path[3][4:]
+
+
+            result[epg_name] = int(vlan_list[-1])
+    return result
+
+            #print(epg_name)
+            #print(vlan_list)
+
+
+
+def addIPGPath(ndapikey, epgname, vlanid):
+    url_create_epg = "https://pt-bmdc-nd-cl1.pasha-technology.net/api/v1/schemas/{}".format(schema_id)
+
+    headers = {'Cookie': 'AuthCookie={}'.format(ndapikey), 'Accept': 'application/json'}
+    data_json = [{
+        "op": "add",
+        "path": "/sites/{}-{}/anps/{}/epgs/{}/staticPorts/0".format(site_id,templateName,anpName,epgname),
+        "value": {
+            "deploymentImmediacy": "immediate",
+            "mode": "regular",
+            "path": "topology/pod-1/protpaths-{}-{}/pathep-[{}]".format(leafid1, leafid2,new_ipg_name),
+            "portEncapVlan": vlanid,
+            "type": "vpc" }
+            }]
+
+    try:
+        #print("***")
+        r = requests.patch(url_create_epg, json=data_json, headers=headers, verify=False)
+    except Exception as err:
+        print(err)
+
+    print(r.content)
+
+
+
+
+
+epg_dict = GetEPGbyIPG(GetAPICToken(apic_ip, user_apic, password_apic), old_ipg_name)
+print(epg_dict)
+for x in epg_dict:
+    #print(x,end=' : ')
+    #print(epg_dict[x])
+    addIPGPath(GetNDAPIKey(user_ndo, password_ndo), x, epg_dict[x])
+    print('IPG {} has been added to the EPG: \033[1m{}\033[0m with VLAN {}'.format(new_ipg_name, x, epg_dict[x]))
+#addIPGPath
+#print(GetEPGbyIPG(GetAPICToken(apic_ip, user_apic, password_apic), ipg_name))
